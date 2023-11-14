@@ -3,7 +3,7 @@
 import rospy
 from std_msgs.msg import ColorRGBA
 from nav_msgs.srv import GetMap, GetMapResponse
-from nav_msgs.msg import MapMetaData
+from nav_msgs.msg import MapMetaData, OccupancyGrid
 from visualization_msgs.msg import Marker
 from geometry_msgs.msg import Quaternion, Vector3, Point
 from rrt import RRT
@@ -19,14 +19,20 @@ def create_sphere_marker(position: Point = Point(x=0, y=0), color: ColorRGBA = C
 
   return marker
 
+
+
 if __name__ == '__main__':
   rospy.init_node('multi_planner')
   
   rate = rospy.Rate(100)
-  
-  get_global_map = rospy.ServiceProxy('/static_map', GetMap)
-  global_map: GetMapResponse = get_global_map()
-  map_metadata: MapMetaData = global_map.map.info
+  # /costmap_node/costmap/costmap
+
+  costmap_subscriber = rospy.Subscriber('/costmap_node/costmap/costmap', OccupancyGrid, queue_size=1)  
+  costmap2_subscriber = rospy.Subscriber('/costmap_node/costmap/costmap', OccupancyGrid, queue_size=1)  
+
+  costmap: OccupancyGrid = rospy.wait_for_message('/costmap_node/costmap/costmap', OccupancyGrid)
+  costmap2: OccupancyGrid = rospy.wait_for_message('/costmap_node2/costmap/costmap', OccupancyGrid)
+  map_metadata: MapMetaData = costmap.info
 
   min_x = map_metadata.origin.position.x
   min_y = map_metadata.origin.position.y
@@ -37,9 +43,9 @@ if __name__ == '__main__':
   start = Point(x=0, y=0)
   goal = Point(x=4, y=-2)
 
-  forward_rrt = RRT(start=(start.x, start.y), goal=(goal.x, goal.y), x_range=(min_x, max_x), y_range=(min_y, max_y), occupancy_grid= global_map.map, delta=0.2)
+  forward_rrt = RRT(start=(start.x, start.y), goal=(goal.x, goal.y), x_range=(min_x, max_x), y_range=(min_y, max_y), occupancy_grid=costmap, delta=0.2)
 
-  reverse_rrt = RRT(start=(goal.x, goal.y), goal= (start.x, start.y), x_range=(min_x, max_x), y_range=(min_y, max_y), occupancy_grid= global_map.map, delta=0.2)
+  reverse_rrt = RRT(start=(goal.x, goal.y), goal= (start.x, start.y), x_range=(min_x, max_x), y_range=(min_y, max_y), occupancy_grid=costmap2, delta=0.2)
 
   start_marker_publisher = rospy.Publisher('/multi_planner/visualization/start', Marker, queue_size=10, latch=True)
   goal_marker_publisher = rospy.Publisher('/multi_planner/visualization/goal', Marker, queue_size=10, latch=True)
