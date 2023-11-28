@@ -1,5 +1,6 @@
 <launch>
-  <node name="static_tf0" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 /map /base_link 10"/>
+  <arg name="map_file" default="$(find vip_marsupial_sim)/maps/map.yaml" />
+  <!-- <node name="static_tf0" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 /map /base_link 10"/> -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find vip_marsupial_sim)/worlds/simulation.world"/>
     <arg name="paused" value="false"/>
@@ -9,7 +10,7 @@
     <arg name="debug" value="false"/>
   </include>
 
-  <node pkg="map_server" name="map_server" type="map_server" args="$(find vip_marsupial_sim)/maps/map.yaml" />
+  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)" />
   <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_burger.urdf.xacro" />
   <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf" args="-urdf -model turtlebot3_burger -x 0.0 -y 0.0 -z 0.0 -param robot_description" />
   
@@ -22,4 +23,10 @@
   </node>
 
   <node pkg="rviz" type="rviz" name="rviz" required="true" args="-d $(find vip_marsupial_sim)/rviz/simulation.rviz" />
+
+  <include file="$(find vip_marsupial_sim)/launch/navigation.launch">
+    <arg name="model" value="burger" />
+    <arg name="map_file" value="$(arg map_file)"/>
+    <arg name="open_rviz" value="false"/>
+  </include>
 </launch>

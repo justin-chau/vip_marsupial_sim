@@ -42,7 +42,11 @@ class RRTVertex:
     self.point: NDArray = np.array(point)
     self.parent = parent
 
-    
+  def __eq__(self, other: object) -> bool:
+    return isinstance(other, RRTVertex) and self.point[0] == other.point[0] and self.point[1] == other.point[1]
+  
+  def __ne__(self, other: object) -> bool:
+    return not self.__eq__(other)
 
   def distance(self, other: RRTVertex):
     return np.linalg.norm(self.point - other.point)
@@ -58,7 +62,7 @@ class RRT:
     self.goal_bias = goal_bias
     self.vertices: List[RRTVertex] = [self.start]
 
-  def random_config(self) -> RRTVertex:
+  def random_vertex(self) -> RRTVertex:
     if np.random.random() < self.goal_bias:
       return RRTVertex(self.goal.point)
     else:
@@ -100,7 +104,7 @@ class RRT:
 
     return False
   
-  def new_config(self, nearest_neighbor: RRTVertex, vertex: RRTVertex) -> Optional[RRTVertex]:
+  def step_vertex(self, nearest_neighbor: RRTVertex, vertex: RRTVertex) -> Optional[RRTVertex]:
     if nearest_neighbor.distance(vertex) <= self.delta and not self.has_edge_collision(nearest_neighbor, vertex):
       return vertex
     
@@ -121,35 +125,27 @@ class RRT:
       else:
         return None
 
-  def extend(self, vertex: RRTVertex) -> Optional[bool]:
-    """
-    Return True if we extend to the specified vertex exactly
-
-    Return False if we extend towards the vertex but are not able to reach there exactly
-
-    Return None if we fail to extend
-    """
+  def extend(self, vertex: RRTVertex) -> RRTVertex:
     nearest_neighbor = self.nearest_neighbor(vertex)
-    stepped_vertex = self.new_config(nearest_neighbor, vertex)
+    stepped_vertex = self.step_vertex(nearest_neighbor, vertex)
 
     if stepped_vertex is not None:
       stepped_vertex.parent = nearest_neighbor
       self.vertices.append(stepped_vertex)
 
-      if stepped_vertex is vertex:
-        return True
-      else:
-        return False
+      return stepped_vertex
 
     return None
 
   def connect(self, vertex: RRTVertex) -> Optional[bool]:
-    reached: bool = self.extend(vertex)
+    vertex_copy = RRTVertex([vertex.point[0], vertex.point[1]])
 
-    while reached is False:
-      reached = self.extend(vertex)
+    stepped_vertex = self.extend(vertex_copy)
 
-    return reached
+    while stepped_vertex != vertex and stepped_vertex is not None:
+      stepped_vertex = self.extend(vertex_copy)
+
+    return stepped_vertex
 
   def get_marker_visualization(self, color: ColorRGBA) -> Marker:
     tree_marker = Marker()
