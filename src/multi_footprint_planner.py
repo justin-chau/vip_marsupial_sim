@@ -167,11 +167,13 @@ if __name__ == '__main__':
       link_property_request.gravity_mode = True
       link_property_client.call(link_property_request)
 
-      initial_pose = PoseWithCovarianceStamped()
-      initial_pose.header.frame_id = 'map'
-      initial_pose.pose.pose.position = exchange_point
-      initial_pose.pose.pose.orientation = Quaternion(w=1)
-      baby_initial_pose_publisher.publish(initial_pose)
+      rospy.logdebug("Baby detached")
+
+      # initial_pose = PoseWithCovarianceStamped()
+      # initial_pose.header.frame_id = 'map'
+      # initial_pose.pose.pose.position = exchange_point
+      # initial_pose.pose.pose.orientation = Quaternion(w=1)
+      # baby_initial_pose_publisher.publish(initial_pose)
 
       # Navigate baby to goal
       move_base_goal = MoveBaseGoal()
@@ -180,7 +182,16 @@ if __name__ == '__main__':
       move_base_goal.target_pose.pose.position = goal
       move_base_goal.target_pose.pose.orientation = Quaternion(w=1)
 
-      baby_move_base_client.send_goal_and_wait(move_base_goal)
+      baby_move_base_client.send_goal(move_base_goal)
+
+
+      move_base_goal = MoveBaseGoal()
+      move_base_goal.target_pose = PoseStamped()
+      move_base_goal.target_pose.header.frame_id = 'map'
+      move_base_goal.target_pose.pose.position = start
+      move_base_goal.target_pose.pose.orientation = Quaternion(w=1)
+
+      mother_move_base_client.send_goal_and_wait(move_base_goal)
 
 
 
