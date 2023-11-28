@@ -1,0 +1,10 @@
+plugins: 
+    - {name: static_map, type: "costmap_2d::StaticLayer"}
+    - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+
+static_map: 
+    track_unknown_space: true
+
+inflation_layer:
+    inflation_radius: 0.08
+    cost_scaling_factor: 10.0

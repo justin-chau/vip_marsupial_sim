@@ -2,7 +2,6 @@
 
 import rospy
 from std_msgs.msg import ColorRGBA
-from nav_msgs.srv import GetMap, GetMapResponse
 from nav_msgs.msg import MapMetaData, OccupancyGrid
 from visualization_msgs.msg import Marker
 from geometry_msgs.msg import Quaternion, Vector3, Point
@@ -25,13 +24,12 @@ if __name__ == '__main__':
   rospy.init_node('multi_planner')
   
   rate = rospy.Rate(100)
-  # /costmap_node/costmap/costmap
 
   costmap_subscriber = rospy.Subscriber('/costmap_node/costmap/costmap', OccupancyGrid, queue_size=1)  
   costmap2_subscriber = rospy.Subscriber('/costmap_node/costmap/costmap', OccupancyGrid, queue_size=1)  
 
-  costmap: OccupancyGrid = rospy.wait_for_message('/costmap_node/costmap/costmap', OccupancyGrid)
-  costmap2: OccupancyGrid = rospy.wait_for_message('/costmap_node2/costmap/costmap', OccupancyGrid)
+  costmap: OccupancyGrid = rospy.wait_for_message('/mother_costmap/costmap/costmap', OccupancyGrid)
+  costmap2: OccupancyGrid = rospy.wait_for_message('/baby_costmap/costmap/costmap', OccupancyGrid)
   map_metadata: MapMetaData = costmap.info
 
   min_x = map_metadata.origin.position.x
@@ -53,6 +51,8 @@ if __name__ == '__main__':
   forward_rrt_publisher = rospy.Publisher('/multi_planner/visualization/forward_rrt', Marker, queue_size=10, latch=True)
   reverse_rrt_publisher = rospy.Publisher('/multi_planner/visualization/reverse_rrt', Marker, queue_size=10, latch=True)
 
+  checked_map_publisher = rospy.Publisher('/multi_planner/visualization/checked_map', OccupancyGrid, queue_size=10, latch=True)
+
   start_marker = create_sphere_marker(start)
   goal_marker = create_sphere_marker(goal, color=ColorRGBA(g=1, a=1))
 
@@ -60,8 +60,8 @@ if __name__ == '__main__':
   goal_marker_publisher.publish(goal_marker)
 
   while True:
-    forward_rrt.random_extend()
-    reverse_rrt.random_extend()
+    forward_rrt.extend(forward_rrt.random_config())
+    reverse_rrt.extend(reverse_rrt.random_config())
 
     forward_rrt_publisher.publish(forward_rrt.get_marker_visualization(color=ColorRGBA(r=1, a=1)))
     reverse_rrt_publisher.publish(reverse_rrt.get_marker_visualization(color=ColorRGBA(g=1, a=1)))

@@ -8,7 +8,7 @@ from std_msgs.msg import ColorRGBA
 from geometry_msgs.msg import Quaternion, Vector3, Point
 from nav_msgs.msg import OccupancyGrid
 
-def bresenham_line(x0, y0, x1, y1):
+def bresenham_line(x0, y0, x1, y1) -> List[Tuple[int, int]]:
     # Bresenham's line algorithm in Python
     cells = []
     dx = abs(x1 - x0)
@@ -41,6 +41,8 @@ class RRTVertex:
   def __init__(self, point: Tuple[float, float], parent: Optional[RRTVertex] = None) -> None:
     self.point: NDArray = np.array(point)
     self.parent = parent
+
+    
 
   def distance(self, other: RRTVertex):
     return np.linalg.norm(self.point - other.point)
@@ -75,9 +77,11 @@ class RRT:
 
     return nearest_vertex
   
+  def get_occupancy_data_position(self, grid_cell: Tuple[int, int]):
+    return grid_cell[1] * self.occupancy_grid.info.width + grid_cell[0]
+
   def get_occupancy_data(self, grid_cell: Tuple[int, int]):
-    index = grid_cell[1] * self.occupancy_grid.info.width + grid_cell[0]
-    return self.occupancy_grid.data[index]
+    return self.occupancy_grid.data[self.get_occupancy_data_position(grid_cell)]
   
   def world_to_grid(self, point: Tuple[float, float]) -> Tuple[int, int]:
     grid_x = np.floor((point[0] - self.occupancy_grid.info.origin.position.x) / self.occupancy_grid.info.resolution)
@@ -91,13 +95,13 @@ class RRT:
     path_cells = bresenham_line(v0_grid[0], v0_grid[1], v1_grid[0], v1_grid[1])
 
     for cell in path_cells:
-      if self.get_occupancy_data(cell) > 0:
+      if self.get_occupancy_data(cell) != 0:
         return True
-      
+
     return False
   
   def new_config(self, nearest_neighbor: RRTVertex, vertex: RRTVertex) -> Optional[RRTVertex]:
-    if nearest_neighbor.distance(vertex) <= self.delta:
+    if nearest_neighbor.distance(vertex) <= self.delta and not self.has_edge_collision(nearest_neighbor, vertex):
       return vertex
     
     else:
@@ -116,17 +120,36 @@ class RRT:
       
       else:
         return None
-  
-  def random_extend(self):
-    self.extend(self.random_config())
 
-  def extend(self, vertex: RRTVertex):
+  def extend(self, vertex: RRTVertex) -> Optional[bool]:
+    """
+    Return True if we extend to the specified vertex exactly
+
+    Return False if we extend towards the vertex but are not able to reach there exactly
+
+    Return None if we fail to extend
+    """
     nearest_neighbor = self.nearest_neighbor(vertex)
     stepped_vertex = self.new_config(nearest_neighbor, vertex)
 
     if stepped_vertex is not None:
       stepped_vertex.parent = nearest_neighbor
       self.vertices.append(stepped_vertex)
+
+      if stepped_vertex is vertex:
+        return True
+      else:
+        return False
+
+    return None
+
+  def connect(self, vertex: RRTVertex) -> Optional[bool]:
+    reached: bool = self.extend(vertex)
+
+    while reached is False:
+      reached = self.extend(vertex)
+
+    return reached
 
   def get_marker_visualization(self, color: ColorRGBA) -> Marker:
     tree_marker = Marker()

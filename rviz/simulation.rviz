@@ -73,7 +73,7 @@ Visualization Manager:
       Marker Topic: /multi_planner/visualization/goal
       Name: Marker
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -81,7 +81,7 @@ Visualization Manager:
       Marker Topic: /multi_planner/visualization/start
       Name: Marker
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -89,7 +89,7 @@ Visualization Manager:
       Marker Topic: /multi_planner/visualization/forward_rrt
       Name: Marker
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -97,7 +97,7 @@ Visualization Manager:
       Marker Topic: /multi_planner/visualization/reverse_rrt
       Name: Marker
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
       Value: true
     - Alpha: 0.699999988079071
@@ -106,7 +106,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /costmap_node/costmap/costmap
+      Topic: /mother_costmap/costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -116,7 +116,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /costmap_node2/costmap/costmap
+      Topic: /baby_costmap/costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: true

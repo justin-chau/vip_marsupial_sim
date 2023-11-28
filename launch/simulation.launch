@@ -13,13 +13,12 @@
   <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_burger.urdf.xacro" />
   <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf" args="-urdf -model turtlebot3_burger -x 0.0 -y 0.0 -z 0.0 -param robot_description" />
   
-
-  <node name="costmap_node" pkg="costmap_2d" type="costmap_2d_node" >
-    <rosparam file="$(find vip_marsupial_sim)/params/costmap_params.yaml" command="load" ns="costmap" />
+  <node name="mother_costmap" pkg="costmap_2d" type="costmap_2d_node" >
+    <rosparam file="$(find vip_marsupial_sim)/params/costmap_params_mother.yaml" command="load" ns="costmap" />
   </node>
 
-  <node name="costmap_node2" pkg="costmap_2d" type="costmap_2d_node" >
-    <rosparam file="$(find vip_marsupial_sim)/params/costmap_params2.yaml" command="load" ns="costmap" />
+  <node name="baby_costmap" pkg="costmap_2d" type="costmap_2d_node" >
+    <rosparam file="$(find vip_marsupial_sim)/params/costmap_params_baby.yaml" command="load" ns="costmap" />
   </node>
 
   <node pkg="rviz" type="rviz" name="rviz" required="true" args="-d $(find vip_marsupial_sim)/rviz/simulation.rviz" />
