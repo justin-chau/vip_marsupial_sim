@@ -1,3 +1,6 @@
+global_frame: "map"
+robot_base_frame: "mother_tf/base_link"
+
 plugins: 
     - {name: static_map, type: "costmap_2d::StaticLayer"}
     - {name: inflation_layer, type: "costmap_2d::InflationLayer"}

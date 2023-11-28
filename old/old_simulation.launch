@@ -1,0 +1,44 @@
+<launch>
+  <arg name="map_file" default="$(find vip_marsupial_sim)/maps/map.yaml" />
+  <arg name="mother_x" default="0.0" />
+  <arg name="mother_y" default="0.0" />
+  <arg name="mother_z" default="0.0" />
+  <arg name="mother_yaw" default="1.57" />
+  <!-- <node name="static_tf0" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 /map /base_link 10"/> -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find vip_marsupial_sim)/worlds/simulation.world"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+  
+  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)" />
+
+  <!-- <node name="baby_costmap" pkg="costmap_2d" type="costmap_2d_node" >
+    <rosparam file="$(find vip_marsupial_sim)/params/costmap_params_baby.yaml" command="load" ns="costmap" />
+  </node> -->
+
+  <node pkg="rviz" type="rviz" name="rviz" required="true" args="-d $(find vip_marsupial_sim)/rviz/simulation.rviz" />
+
+  <group ns="mother">
+    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_waffle.urdf.xacro" />
+
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model mother -x $(arg mother_x) -y $(arg mother_y) -z $(arg mother_z) -Y $(arg mother_yaw) -param robot_description" />
+
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
+      <param name="publish_frequency" type="double" value="50.0" />
+      <param name="tf_prefix" value="mother" />
+    </node>
+
+    <include file="$(find vip_marsupial_sim)/launch/navigation.launch">
+      <arg name="model" value="burger" />
+      <arg name="robot_name" value="mother"/>
+    </include>
+
+    <node name="costmap" pkg="costmap_2d" type="costmap_2d_node" >
+      <rosparam file="$(find vip_marsupial_sim)/params/costmap_params_mother.yaml" command="load" ns="costmap" />
+    </node>
+  </group>
+</launch>

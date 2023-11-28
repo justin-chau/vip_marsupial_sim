@@ -26,12 +26,11 @@ def create_sphere_marker(position: Point = Point(x=0, y=0), color: ColorRGBA = C
 if __name__ == '__main__':
   rospy.init_node('multi_planner')
 
-  costmap_subscriber = rospy.Subscriber('/costmap_node/costmap/costmap', OccupancyGrid, queue_size=1)  
-  costmap2_subscriber = rospy.Subscriber('/costmap_node/costmap/costmap', OccupancyGrid, queue_size=1)  
-
-  costmap: OccupancyGrid = rospy.wait_for_message('/mother_costmap/costmap/costmap', OccupancyGrid)
-  costmap2: OccupancyGrid = rospy.wait_for_message('/baby_costmap/costmap/costmap', OccupancyGrid)
-  map_metadata: MapMetaData = costmap.info
+  mother_costmap: OccupancyGrid = rospy.wait_for_message('/mother_inflation/costmap/costmap', OccupancyGrid)
+  print('mother')
+  baby_costmap: OccupancyGrid = rospy.wait_for_message('/baby_inflation/costmap/costmap', OccupancyGrid)
+  print('baby')
+  map_metadata: MapMetaData = mother_costmap.info
 
   min_x = map_metadata.origin.position.x
   min_y = map_metadata.origin.position.y
@@ -42,9 +41,9 @@ if __name__ == '__main__':
   start = Point(x=0, y=0)
   goal = Point(x=4, y=-2)
 
-  forward_rrt = RRT(start=(start.x, start.y), goal=(goal.x, goal.y), x_range=(min_x, max_x), y_range=(min_y, max_y), occupancy_grid=costmap, delta=0.2)
+  forward_rrt = RRT(start=(start.x, start.y), goal=(goal.x, goal.y), x_range=(min_x, max_x), y_range=(min_y, max_y), occupancy_grid=mother_costmap, delta=0.2)
 
-  reverse_rrt = RRT(start=(goal.x, goal.y), goal=(start.x, start.y), x_range=(min_x, max_x), y_range=(min_y, max_y), occupancy_grid=costmap2, delta=0.2)
+  reverse_rrt = RRT(start=(goal.x, goal.y), goal=(start.x, start.y), x_range=(min_x, max_x), y_range=(min_y, max_y), occupancy_grid=baby_costmap, delta=0.2)
 
   start_marker_publisher = rospy.Publisher('/multi_planner/visualization/start', Marker, queue_size=10, latch=True)
   goal_marker_publisher = rospy.Publisher('/multi_planner/visualization/goal', Marker, queue_size=10, latch=True)
@@ -56,7 +55,7 @@ if __name__ == '__main__':
 
   checked_map_publisher = rospy.Publisher('/multi_planner/visualization/checked_map', OccupancyGrid, queue_size=10, latch=True)
 
-  move_base_client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
+  move_base_client = actionlib.SimpleActionClient('/mother/move_base', MoveBaseAction)
   move_base_client.wait_for_server()
 
   start_marker = create_sphere_marker(start)

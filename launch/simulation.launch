@@ -1,6 +1,8 @@
 <launch>
   <arg name="map_file" default="$(find vip_marsupial_sim)/maps/map.yaml" />
-  <!-- <node name="static_tf0" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 /map /base_link 10"/> -->
+
+  <param name="/use_sim_time" value="true"/>
+  
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find vip_marsupial_sim)/worlds/simulation.world"/>
     <arg name="paused" value="false"/>
@@ -10,23 +12,47 @@
     <arg name="debug" value="false"/>
   </include>
 
-  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)" />
-  <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_burger.urdf.xacro" />
-  <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf" args="-urdf -model turtlebot3_burger -x 0.0 -y 0.0 -z 0.0 -param robot_description" />
-  
-  <node name="mother_costmap" pkg="costmap_2d" type="costmap_2d_node" >
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)">
+    <param name="frame_id" value="map" />
+  </node>
+
+  <!-- BEGIN ROBOT 1-->
+  <group ns="mother">
+    <param name="tf_prefix" value="mother_tf" />
+    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_waffle.urdf.xacro" />
+
+    <include file="$(find vip_marsupial_sim)/launch/robot.launch">
+      <arg name="init_pose" value="-x 0 -y 0 -z 0" />
+      <arg name="robot_name"  value="mother" />
+    </include>
+  </group>
+
+  <node name="mother_inflation" pkg="costmap_2d" type="costmap_2d_node" >
     <rosparam file="$(find vip_marsupial_sim)/params/costmap_params_mother.yaml" command="load" ns="costmap" />
   </node>
 
-  <node name="baby_costmap" pkg="costmap_2d" type="costmap_2d_node" >
+  <include file="$(find vip_marsupial_sim)/launch/navigation.launch">
+    <arg name="robot_name" value="mother" />
+  </include>
+
+  <!-- BEGIN ROBOT 2-->
+  <group ns="baby">
+    <param name="tf_prefix" value="baby_tf" />
+    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_burger.urdf.xacro" />
+
+    <include file="$(find vip_marsupial_sim)/launch/robot.launch" >
+      <arg name="init_pose" value="-x 1 -y 0 -z 0" />
+      <arg name="robot_name"  value="baby" />
+    </include>
+  </group>
+
+  <node name="baby_inflation" pkg="costmap_2d" type="costmap_2d_node" >
     <rosparam file="$(find vip_marsupial_sim)/params/costmap_params_baby.yaml" command="load" ns="costmap" />
   </node>
 
-  <node pkg="rviz" type="rviz" name="rviz" required="true" args="-d $(find vip_marsupial_sim)/rviz/simulation.rviz" />
+  <!-- <include file="$(find vip_marsupial_sim)/launch/navigation.launch">
+    <arg name="robot_name" value="baby" />
+  </include> -->
 
-  <include file="$(find vip_marsupial_sim)/launch/navigation.launch">
-    <arg name="model" value="burger" />
-    <arg name="map_file" value="$(arg map_file)"/>
-    <arg name="open_rviz" value="false"/>
-  </include>
+  <node pkg="rviz" type="rviz" name="rviz" required="true" args="-d $(find vip_marsupial_sim)/rviz/simulation.rviz" />
 </launch>
