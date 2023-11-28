@@ -27,9 +27,7 @@ if __name__ == '__main__':
   rospy.init_node('multi_planner')
 
   mother_costmap: OccupancyGrid = rospy.wait_for_message('/mother_inflation/costmap/costmap', OccupancyGrid)
-  print('mother')
   baby_costmap: OccupancyGrid = rospy.wait_for_message('/baby_inflation/costmap/costmap', OccupancyGrid)
-  print('baby')
   map_metadata: MapMetaData = mother_costmap.info
 
   min_x = map_metadata.origin.position.x

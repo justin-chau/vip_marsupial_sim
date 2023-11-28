@@ -38,10 +38,10 @@
   <!-- BEGIN ROBOT 2-->
   <group ns="baby">
     <param name="tf_prefix" value="baby_tf" />
-    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_burger.urdf.xacro" />
+    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find vip_marsupial_sim)/urdf/turtlebot3_burger_floating.urdf.xacro" />
 
     <include file="$(find vip_marsupial_sim)/launch/robot.launch" >
-      <arg name="init_pose" value="-x 1 -y 0 -z 0" />
+      <arg name="init_pose" value="-x -0.25 -y 0 -z 0.1" />
       <arg name="robot_name"  value="baby" />
     </include>
   </group>
@@ -50,9 +50,9 @@
     <rosparam file="$(find vip_marsupial_sim)/params/costmap_params_baby.yaml" command="load" ns="costmap" />
   </node>
 
-  <!-- <include file="$(find vip_marsupial_sim)/launch/navigation.launch">
+  <include file="$(find vip_marsupial_sim)/launch/navigation.launch">
     <arg name="robot_name" value="baby" />
-  </include> -->
+  </include>
 
   <node pkg="rviz" type="rviz" name="rviz" required="true" args="-d $(find vip_marsupial_sim)/rviz/simulation.rviz" />
 </launch>
