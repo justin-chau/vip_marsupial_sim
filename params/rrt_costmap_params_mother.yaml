@@ -9,5 +9,5 @@ static_map:
     track_unknown_space: true
 
 inflation_layer:
-    inflation_radius: 0.55
+    inflation_radius: 0.75
     cost_scaling_factor: 10.0

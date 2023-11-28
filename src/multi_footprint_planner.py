@@ -4,7 +4,7 @@ import rospy
 from std_msgs.msg import ColorRGBA
 from nav_msgs.msg import MapMetaData, OccupancyGrid
 from visualization_msgs.msg import Marker
-from geometry_msgs.msg import Quaternion, Vector3, Point, PoseStamped
+from geometry_msgs.msg import Quaternion, Vector3, Point, PoseStamped, PoseWithCovarianceStamped
 from rrt import RRT, RRTVertex
 import numpy as np
 from typing import Optional
@@ -68,6 +68,9 @@ if __name__ == '__main__':
   # Initialize simulation link property service
   link_property_client = rospy.ServiceProxy('/gazebo/set_link_properties', SetLinkProperties)
   link_property_client.wait_for_service()
+
+  # Initialize baby initial pose guess publisher
+  baby_initial_pose_publisher = rospy.Publisher('/baby/initialpose', PoseWithCovarianceStamped, queue_size=1, latch=False)
   
   if mother_costmap is not None and baby_costmap is not None:
     map_metadata: MapMetaData = mother_costmap.info
@@ -163,6 +166,12 @@ if __name__ == '__main__':
       link_property_request.mass = 0.03
       link_property_request.gravity_mode = True
       link_property_client.call(link_property_request)
+
+      initial_pose = PoseWithCovarianceStamped()
+      initial_pose.header.frame_id = 'map'
+      initial_pose.pose.pose.position = exchange_point
+      initial_pose.pose.pose.orientation = Quaternion(w=1)
+      baby_initial_pose_publisher.publish(initial_pose)
 
       # Navigate baby to goal
       move_base_goal = MoveBaseGoal()
