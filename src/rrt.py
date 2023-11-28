@@ -64,7 +64,7 @@ class RRT:
 
   def random_vertex(self) -> RRTVertex:
     if np.random.random() < self.goal_bias:
-      return RRTVertex(self.goal.point)
+      return RRTVertex((self.goal.point[0], self.goal.point[1]))
     else:
       return RRTVertex((np.random.uniform(self.x_range[0], self.x_range[1]), np.random.uniform(self.y_range[0], self.y_range[1])))
   
@@ -93,8 +93,8 @@ class RRT:
     return (int(grid_x), int(grid_y))
   
   def has_edge_collision(self, v0: RRTVertex, v1: RRTVertex):
-    v0_grid = self.world_to_grid(v0.point)
-    v1_grid = self.world_to_grid(v1.point)
+    v0_grid = self.world_to_grid((v0.point[0], v0.point[1]))
+    v1_grid = self.world_to_grid((v1.point[0], v1.point[1]))
 
     path_cells = bresenham_line(v0_grid[0], v0_grid[1], v1_grid[0], v1_grid[1])
 
@@ -117,7 +117,7 @@ class RRT:
 
       normalized_direction_vector = direction_vector / direction_vector_norm
       new_point = (normalized_direction_vector * self.delta) + nearest_neighbor.point
-      new_vertex = RRTVertex(new_point)
+      new_vertex = RRTVertex((new_point[0], new_point[1]))
 
       if new_point[0] >= self.x_range[0] and new_point[0] <= self.x_range[1] and new_point[1] >= self.y_range[0] and new_point[1] <= self.y_range[1] and not self.has_edge_collision(nearest_neighbor, new_vertex):
         return new_vertex
@@ -125,7 +125,7 @@ class RRT:
       else:
         return None
 
-  def extend(self, vertex: RRTVertex) -> RRTVertex:
+  def extend(self, vertex: RRTVertex) -> Optional[RRTVertex]:
     nearest_neighbor = self.nearest_neighbor(vertex)
     stepped_vertex = self.step_vertex(nearest_neighbor, vertex)
 
@@ -137,8 +137,8 @@ class RRT:
 
     return None
 
-  def connect(self, vertex: RRTVertex) -> Optional[bool]:
-    vertex_copy = RRTVertex([vertex.point[0], vertex.point[1]])
+  def connect(self, vertex: RRTVertex) -> Optional[RRTVertex]:
+    vertex_copy = RRTVertex((vertex.point[0], vertex.point[1]))
 
     stepped_vertex = self.extend(vertex_copy)
 
@@ -154,6 +154,7 @@ class RRT:
     tree_marker.pose.orientation = Quaternion(w=1)
     tree_marker.color = color
     tree_marker.scale = Vector3(x=0.01)
+    tree_marker.points = []
 
     for vertex in self.vertices:
       if vertex.parent is not None:
