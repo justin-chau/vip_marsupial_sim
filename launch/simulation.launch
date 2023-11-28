@@ -28,11 +28,12 @@
   </group>
 
   <node name="mother_inflation" pkg="costmap_2d" type="costmap_2d_node" >
-    <rosparam file="$(find vip_marsupial_sim)/params/costmap_params_mother.yaml" command="load" ns="costmap" />
+    <rosparam file="$(find vip_marsupial_sim)/params/rrt_costmap_params_mother.yaml" command="load" ns="costmap" />
   </node>
 
   <include file="$(find vip_marsupial_sim)/launch/navigation.launch">
     <arg name="robot_name" value="mother" />
+    <arg name="model" value="waffle" />
   </include>
 
   <!-- BEGIN ROBOT 2-->
@@ -41,18 +42,19 @@
     <param name="robot_description" command="$(find xacro)/xacro --inorder $(find vip_marsupial_sim)/urdf/turtlebot3_burger_floating.urdf.xacro" />
 
     <include file="$(find vip_marsupial_sim)/launch/robot.launch" >
-      <arg name="init_pose" value="-x -0.25 -y 0 -z 0.15" />
+      <arg name="init_pose" value="-x 0.25 -y 0 -z 0.15" />
       <arg name="robot_name"  value="baby" />
     </include>
   </group>
 
   <node name="baby_inflation" pkg="costmap_2d" type="costmap_2d_node" >
-    <rosparam file="$(find vip_marsupial_sim)/params/costmap_params_baby.yaml" command="load" ns="costmap" />
+    <rosparam file="$(find vip_marsupial_sim)/params/rrt_costmap_params_baby.yaml" command="load" ns="costmap" />
   </node>
 
   <include file="$(find vip_marsupial_sim)/launch/navigation.launch">
     <arg name="robot_name" value="baby" />
-    <arg name="initial_pose_x" default="-0.25"/>
+    <arg name="model" value="burger" />
+    <arg name="initial_pose_x" default="0.25"/>
     <arg name="initial_pose_y" default="0.0"/>
   </include>
 

@@ -132,7 +132,7 @@ if __name__ == '__main__':
       move_base_goal.target_pose.pose.position = exchange_point
       move_base_goal.target_pose.pose.orientation = Quaternion(w=1)
 
-      move_base_client.send_goal_and_wait(move_base_goal)
+      mother_move_base_client.send_goal_and_wait(move_base_goal)
 
       # Detach baby
       attach_request = AttachRequest()
@@ -163,6 +163,15 @@ if __name__ == '__main__':
       link_property_request.mass = 0.03
       link_property_request.gravity_mode = True
       link_property_client.call(link_property_request)
+
+      # Navigate baby to goal
+      move_base_goal = MoveBaseGoal()
+      move_base_goal.target_pose = PoseStamped()
+      move_base_goal.target_pose.header.frame_id = 'map'
+      move_base_goal.target_pose.pose.position = goal
+      move_base_goal.target_pose.pose.orientation = Quaternion(w=1)
+
+      baby_move_base_client.send_goal_and_wait(move_base_goal)
 
 
 

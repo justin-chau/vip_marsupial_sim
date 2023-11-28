@@ -1,5 +1,6 @@
 <launch>
   <arg name="robot_name" />
+  <arg name="model" />
   <arg name="initial_pose_x" default="0.0"/>
   <arg name="initial_pose_y" default="0.0"/>
 
@@ -11,5 +12,6 @@
 
   <include file="$(find vip_marsupial_sim)/launch/move_base.launch">
     <arg name="robot_name" value="$(arg robot_name)" />
+    <arg name="model" value="$(arg model)"/>
   </include>
 </launch>
